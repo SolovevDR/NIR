@@ -1,6 +1,7 @@
 import pandas as pd
 import threading
 import time
+from apachelog import parser
 
 class save_df():
     def __init__(self):
@@ -13,37 +14,23 @@ class save_df():
         return  self.my_df
 
 def read_line(example_class, line):
-    separators = ['"', ' ', '[', ']']
-    curretnSep = ''
-
-    resultList = []
-    newString = ''
-
     my_df = example_class.return_df()
+    col_names = r'%h %l %u %t \"%r\" %>s %b \"%{Referer}i\" \"%{User-Agent}i\" \"%{X}i\"'
 
-    for s in line:
-        if s in separators:
-            if curretnSep == '':
-                curretnSep = s
-                if newString != '': resultList.append(newString)
-                newString = ''
-            elif curretnSep == s or curretnSep == '[' and s == ']':
-                curretnSep = ''
-                if newString != '': resultList.append(newString)
-                newString = ''
-            elif curretnSep == ' ':
-                curretnSep = s
-            elif (curretnSep == '"' or curretnSep == '[') and s == ' ':
-                newString += s
-        else:
-            newString += s
-    print(resultList)
-    if len(resultList) != 0:
-        newline = {'%h': resultList[0], '%l': resultList[1], '%u': resultList[2], '%t': resultList[3],
-                   '%r': resultList[4], '%>s': resultList[5], '%b': resultList[6], '%{Referr}i': resultList[7],
-                   '%{Useragent}i': resultList[8]}
+    logline_parser = parser(col_names)
+
+    pars_line = logline_parser.parse(line)
+    end_time = time.time()
+
+    try:
+        newline = {'%h': pars_line.get('%h'), '%l': pars_line.get('%l'), '%u': pars_line.get('%u'), '%t': pars_line.get('%t'),
+                   '%r': pars_line.get('%r'), '%>s': pars_line.get('%>s'), '%b': pars_line.get('%b'), '%{Referr}i': pars_line.get('%{Referer}i'),
+                   '%{Useragent}i': pars_line.get('%{User-Agent}i')}
         my_df = my_df.append(newline, ignore_index=True)
         example_class.save_df(my_df)
+    except:
+        pass
+
 
 start_time = time.time()
 col_names = ['%h', '%l', '%u', '%t', '%r', '%>s', '%b', '%{Referr}i', '%{Useragent}i']
