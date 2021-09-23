@@ -3,6 +3,7 @@ import threading
 import time
 from apachelog import parser
 
+
 class save_df():
     def __init__(self):
         my_df = None
@@ -31,34 +32,34 @@ def read_line(example_class, line):
     except:
         pass
 
+if __name__ == '__main__':
+    start_time = time.time()
+    col_names = ['%h', '%l', '%u', '%t', '%r', '%>s', '%b', '%{Referr}i', '%{Useragent}i']
+    my_df = pd.DataFrame(columns=col_names)
+    exaple_class = save_df()
+    exaple_class.save_df(my_df)
 
-start_time = time.time()
-col_names = ['%h', '%l', '%u', '%t', '%r', '%>s', '%b', '%{Referr}i', '%{Useragent}i']
-my_df = pd.DataFrame(columns=col_names)
-exaple_class = save_df()
-exaple_class.save_df(my_df)
+    threads = []
+    k = 0
 
-threads = []
-k = 0
+    with open("1.txt") as infile:
+        for line in infile:
 
-with open("1.txt") as infile:
-    for line in infile:
-
-        if k < 400:
-            t = threading.Thread(target=read_line, args=(exaple_class, line,))
-            t.start()
-            threads.append(t)
-        else:
-            for thread in threads:
-                thread.join()
-                threads = []
+            if k < 400:
+                t = threading.Thread(target=read_line, args=(exaple_class, line,))
+                t.start()
+                threads.append(t)
+            else:
+                for thread in threads:
+                    thread.join()
+                    threads = []
 
 
-my_df = exaple_class.return_df()
+    my_df = exaple_class.return_df()
 
-my_df.to_csv('file1.csv', header=True, sep=';')
-end_time = time.time()
-print('end time: ', end_time - start_time)
+    my_df.to_csv('parse_accessLog.csv', header=True, sep=';')
+    end_time = time.time()
+    print('end time: ', end_time - start_time)
 
 # with open("accessLog.txt") as infile:
 #     for line in infile:
